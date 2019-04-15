@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 import numpy as np
-from timeit import default_timer as timer
-
 from forlib import example as fex
 from cpplib import example as cex
 
