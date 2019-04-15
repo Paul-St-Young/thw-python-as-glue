@@ -9,7 +9,7 @@ def add(i, j):
 def check_correct(vec1, vec2):
   pyvec = add(vec1, vec2)
   cvec = cex.add(vec1, vec2)
-  fvec = cex.add(vec1, vec2)
+  fvec = fex.add(vec1, vec2)
   print('cpp=python', np.allclose(cvec, pyvec))
   print('fortran=python', np.allclose(fvec, pyvec))
 
