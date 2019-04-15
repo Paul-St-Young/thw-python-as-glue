@@ -3,7 +3,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from qharv.inspect import axes_pos, crystal, volumetric
 from ase import Atoms
 from ase.build import make_supercell
 
@@ -23,7 +22,7 @@ def init_pos(natom):
   pos = s1.get_positions()
   axes = s1.get_cell()
   # check density
-  rho1 = natom/axes_pos.volume(axes)
+  rho1 = natom/s1.get_volume()
   if not np.isclose(rho, rho1):
     raise RuntimeError('supercell density is wrong')
   return axes, pos
@@ -44,14 +43,6 @@ def get_dtable(pos, lbox):
     for j in range(natom):
       dtable[i, j] = np.linalg.norm(disp_in_box(pos[i]-pos[j], lbox))
   return dtable
-
-from timeit import default_timer as timer
-def time_dtable(func, pos, lbox, nrun):
-  start = timer()
-  for irun in range(nrun):
-    func(pos, lbox)
-  end = timer()
-  return (end-start)/nrun
 
 def check_correct(methods, func_map, pos, lbox):
   # get ase distance table (reference distance table)
@@ -82,13 +73,14 @@ def check_correct(methods, func_map, pos, lbox):
 if __name__ == '__main__':
   natom = 32
   natom = 108
-  #natom = 8**3*4
+  natom = 8**3*4
   axes, pos = init_pos(natom)
-  # view crystal
-  fig, ax = volumetric.figax3d()
-  crystal.draw_cell(ax, axes)
-  crystal.draw_atoms(ax, pos)
-  plt.show()
+  ## view crystal
+  #from qharv.inspect import crystal, volumetric
+  #fig, ax = volumetric.figax3d()
+  #crystal.draw_cell(ax, axes)
+  #crystal.draw_atoms(ax, pos)
+  #plt.show()
 
   import forlib.example as fex
   import forlib.example as cex
@@ -103,14 +95,15 @@ if __name__ == '__main__':
   check_correct(methods, func_map, pos, lbox)
 
   nrun = 3  # number of times to repeat timing measurement
+  import sys
+  sys.path.insert(0, '../2_simd')
+  from pyadd import time_func
   times = {}
   for method in methods:
     func = func_map[method]
-    time = time_dtable(func, pos, lbox, nrun)
-    print(method, time)
+    time = time_func(nrun)(func)(pos, lbox)
     times[method] = time
   pyt = times['python']
   for method, time in times.items():
-    #if method == 'python': continue
     print('python/%s' % method, pyt/time)
 # end __main__
